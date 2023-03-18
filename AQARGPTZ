@@ -1,0 +1,67 @@
+<?php
+
+include('<connection file path>');
+
+if (isset($_GET['QAGPT'])){
+  $QAGPT = $_GET['QAGPT'];
+}else{
+  $QAGPT = 'null';
+}
+
+
+$result = mysqli_query($LINK, "SELECT * FROM <the table here> WHERE name of the column = '<type of RE if required or remove it to get full data>' ORDER BY `<the index>` DESC LIMIT <limitation if required>");
+
+// Output headers
+$datas = array();
+
+while ($row = mysqli_fetch_assoc($result)) {
+    $data = [
+            // Convert the code to json code
+    ];
+
+    array_push($datas, $data);
+}
+
+#echo json_encode($datas);
+
+$s = json_encode($datas);
+$s= str_replace('"',"'",$s);
+
+
+$prompt= "قم بالإجابة عن أي سؤال بإستخدام البيانات وقم وإعتذر عن الأسئلة الخارجة عن نطاق العقار. إستخدم العربية .: ".$s ." " . $QAGPT;
+$curl = curl_init();
+
+curl_setopt_array($curl, array(
+  CURLOPT_URL => '<add the link>',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_POSTFIELDS =>'{
+    "model": "gpt-3.5-turbo",
+    "messages": [
+        {
+            "role": "user",
+            "content":"'.$prompt.'"
+        }
+    ]
+    }',
+  CURLOPT_HTTPHEADER => array(
+    'Content-Type: application/json',
+    'customer-id: <the id>',
+    'x-api-key: <the key here>'
+  ),
+));
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+
+$data = json_decode($response);
+$message_content = $data->choices[0]->message->content;
+echo $message_content;
+
+
